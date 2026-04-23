@@ -1,1 +1,10 @@
+sudo su
+sudo systemctl start postgresql
+msfconsole
+load msgrpc ServerHost=127.0.0.1 ServerPort=55552 User=msf Pass=msf SSL=false
+cd /usr/share/beef/ && ./beef
+sudo systemctl start nessusd.service
+=====================================================================================================
+file extenti
+-x php,html,js,json,txt,xml,log,conf,config,bak,old,backup,zip,tar,tar.gz,gz,rar,7z,sql,db,sqlite,env,ini,yaml,yml,git,svn,htaccess,htpasswd
 
