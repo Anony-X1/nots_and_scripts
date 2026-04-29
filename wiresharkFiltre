@@ -1,0 +1,172 @@
+# Create improved cheat sheet with explanations per filter
+
+content = """
+========================================================
+NETWORK ANALYSIS CHEAT SHEET (Wireshark + tcpdump)
+WITH EXPLANATIONS
+========================================================
+
+Purpose:
+Detect abnormal behavior, malware traffic, exfiltration patterns, and network anomalies
+========================================================
+
+========================
+1. BASIC NETWORK FILTERS
+========================
+
+1. ip.addr != 192.168.0.0/16        -> Shows traffic outside local network (external connections)
+2. ip.dst != 192.168.0.0/16         -> Detect outgoing external traffic
+3. ip.src != 192.168.0.0/16         -> Detect incoming external traffic
+4. ip.addr == 0.0.0.0               -> Unassigned or misconfigured IP traffic
+5. ip.addr == 127.0.0.1             -> Localhost traffic (internal system processes)
+6. ip.addr                          -> Any IP-based traffic overview
+7. ip.version == 4                 -> IPv4 traffic only
+8. ip.version == 6                 -> IPv6 traffic only
+9. tcp                             -> TCP connections (reliable transport)
+10. udp                             -> UDP connections (fast/connectionless traffic)
+
+========================
+2. HTTP ANALYSIS
+========================
+
+11. http                           -> All HTTP traffic
+12. http.request                   -> HTTP requests sent by client
+13. http.response                  -> Server responses
+14. http.request.method == "POST"  -> Data submission (login, upload, exfiltration)
+15. http.request.method == "GET"   -> Data retrieval requests
+16. http contains "login"          -> Detect authentication attempts
+17. http contains "password"       -> Detect credential transmission
+18. http contains "token"          -> Detect session/auth tokens
+19. http.host                      -> Target domain being accessed
+20. http.user_agent                -> Identifies browser/app making request
+
+========================
+3. DNS ANALYSIS
+========================
+
+21. dns                           -> All DNS queries
+22. dns.qry.name                 -> Requested domain names
+23. dns.qry.name contains "api"  -> API communication detection
+24. dns.qry.name contains "update"-> Auto-update or hidden fetch behavior
+25. dns.qry.name contains "sync"  -> Data synchronization behavior
+26. dns.flags.response == 0       -> DNS query request
+27. dns.flags.response == 1       -> DNS response
+28. dns.count                     -> Number of DNS requests
+29. dns.time                      -> Time taken for DNS resolution
+30. dns contains "unknown"        -> Suspicious or unknown domains
+
+========================
+4. TLS / HTTPS TRAFFIC
+========================
+
+31. tls                          -> TLS encrypted traffic
+32. ssl.handshake                -> Secure connection setup
+33. tls.handshake.extensions_server_name -> Domain requested in HTTPS
+34. tls.record                   -> Encrypted data packets
+35. tls.alert_message            -> TLS errors or attacks
+36. tls.handshake.type == 1      -> Client Hello (start of connection)
+37. tls.handshake.type == 2      -> Server Hello
+38. tls.app_data                -> Encrypted application data
+39. tls.record.length > 1000     -> Large encrypted payload (possible exfiltration)
+40. ssl                          -> Legacy SSL traffic
+
+========================
+5. BEHAVIOR / RAT DETECTION
+========================
+
+41. frame.time_delta < 1         -> Extremely frequent packets (automation/malware)
+42. frame.time_delta < 5         -> Periodic beaconing behavior
+43. frame.len > 1000             -> Large data transfer (possible data leak)
+44. frame.len > 1500             -> Very large packets (file transfer/exfiltration)
+45. tcp.analysis.retransmission  -> Packet resend (network anomaly or manipulation)
+46. tcp.flags.syn == 1           -> New connection initiation
+47. tcp.flags.fin == 1           -> Connection closing
+48. tcp.flags.reset == 1         -> Forced connection termination (suspicious)
+49. tcp.stream                   -> Track full TCP session
+50. tcp.analysis.flags           -> TCP anomalies overview
+
+========================
+6. DATA EXFILTRATION INDICATORS
+========================
+
+51. http.request.method == "POST" && frame.len > 1000 -> Large data upload
+52. http contains "upload"        -> File upload activity
+53. http contains "send"          -> Data transmission behavior
+54. http contains "data"          -> Generic data transfer detection
+55. http contains "log"           -> Log file exfiltration
+56. ftp                           -> File transfer protocol usage
+57. ftp-data                      -> FTP data channel
+58. smtp                          -> Email-based data sending
+59. imap                          -> Email retrieval (possible data access)
+60. pop3                          -> Email download behavior
+
+========================
+7. SUSPICIOUS NETWORK CONNECTIONS
+========================
+
+61. ip.dst != 10.0.0.0/8          -> External network detection
+62. ip.dst != 172.16.0.0/12       -> External private network range check
+63. ip.dst != 192.168.0.0/16      -> External internet traffic detection
+64. ip.dst                        -> Destination IP tracking
+65. ip.src                        -> Source IP tracking
+66. tcp.port == 4444              -> Common malware port (backdoors)
+67. tcp.port == 1337              -> Suspicious/custom services
+68. tcp.port == 8080              -> Alternative HTTP proxy traffic
+69. tcp.port == 9001              -> Possible C2 communication
+70. udp.port                      -> UDP-based communication
+
+========================
+8. ADVANCED ANOMALIES
+========================
+
+71. frame.time_delta_displayed < 2 -> Rapid automated communication
+72. tcp.analysis.duplicate_ack     -> Network congestion or manipulation
+73. tcp.analysis.out_of_order      -> Packet tampering or instability
+74. tcp.analysis.retransmission    -> Lost or intercepted packets
+75. ip.ttl < 64                    -> Possible internal routing anomalies
+76. ip.ttl == 1                    -> Packet limited to local network
+77. icmp                          -> Ping/diagnostic traffic
+78. arp                           -> Local network mapping
+79. http2                         -> Modern HTTP protocol usage
+80. quic                          -> Google UDP-based protocol
+
+========================
+9. DNS TUNNELING / C2 DETECTION
+========================
+
+81. dns.qry.name.len > 30         -> Long encoded domains (data hiding)
+82. dns.qry.name matches ".*[0-9]{5,}.*" -> Encoded/automated domains
+83. dns.qry.name contains "xyz"   -> Random suspicious pattern
+84. dns.qry.name contains "abc"   -> Fake domain pattern
+85. dns.qry.name contains "token" -> Possible credential leakage
+86. dns.qry.name contains "cmd"   -> Command and control signaling
+87. dns.qry.name contains "c2"    -> Explicit C2 indicator
+88. dns.qry.name contains "panel" -> Admin panel communication
+89. dns.qry.name contains "bot"   -> Botnet communication
+90. dns.qry.name contains "server"-> Remote server communication
+
+========================
+10. GENERAL ANOMALY DETECTION
+========================
+
+91. frame.len > 2000             -> Very large suspicious packet
+92. frame.len < 100              -> Tiny control or beacon packets
+93. tcp.stream eq 0              -> First TCP session tracking
+94. tcp.stream eq 1              -> Second session tracking
+95. http.request                 -> All outgoing web requests
+96. http.response                -> All incoming responses
+97. ssl                          -> Encrypted traffic detection
+98. tcp.analysis                 -> TCP-level anomaly detection
+99. dns                          -> Domain resolution activity
+100. ip                          -> All IP-level traffic overview
+
+========================================================
+END OF CHEAT SHEET
+========================================================
+"""
+
+file_path = "/mnt/data/wireshark_tcpdump_cheatsheet_annotated.txt"
+with open(file_path, "w") as f:
+    f.write(content)
+
+file_path
